@@ -1,6 +1,8 @@
 // Michael Fleagle
 // CS480
 
+// This is a test of the gihub repo connection
+
 #include "calculator.h"
 
 #include <QApplication>
