@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+#include <QtMath>
 
 int main(int argc, char *argv[])
 {

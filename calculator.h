@@ -2,6 +2,7 @@
 #define CALCULATOR_H
 
 #include <QMainWindow>
+#include <QtMath>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Calculator; }
@@ -12,7 +13,7 @@ class Calculator : public QMainWindow
     Q_OBJECT
 
 public:
-    Calculator(QWidget *parent = nullptr);
+    Calculator(QWidget *parent = 0);
     ~Calculator();
 
 private:
@@ -24,16 +25,16 @@ private slots:
     // this will include the /, *, -, +, and ^
     void OperatorButtonPressed();
     // this will include the sin, cos, tan, cot, log, and ln
-    void TrigButtonPressed(); // possible sepeartion in future
+    //void TrigButtonPressed(); // possible sepeartion in future
     // this will include the =
     void EqualButtonPressed();
     // this will include the +/-
-    void ChangeSignButtonPressed();
+    //void ChangeSignButtonPressed();
     // this will include the Clear
-    void ClearButtonPressed();
+    //void ClearButtonPressed();
     // this will include the backspace
-    void BackButtonPressed();
+    //void BackButtonPressed();
     // this will include {, }, (, and )
-    void ParenButtonPressed(); // possible sepeartion in future
+    //void ParenButtonPressed(); // possible sepeartion in future
 };
 #endif // CALCULATOR_H
