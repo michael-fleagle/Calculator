@@ -11,11 +11,11 @@
 // namesapce std for ease of use
 using namespace std;
 
-// create value to hold current calculation value
+// create value to hold calculation value
 double calcVal = 0.0;
 
 // create two vectors to hold the output and operator stack
-vector<double> output;
+vector<QString> output;
 vector<QString> operators;
 vector<QString> input;
 
@@ -39,6 +39,9 @@ Calculator::Calculator(QWidget *parent)
         connect(numButtons[i], SIGNAL(released()), this, SLOT(NumPressed()));
     }
 
+    // set up . button
+    connect(ui->Button_Period, SIGNAL(released()), this, SLOT(NumPressed()));
+
     // set up + button
     connect(ui->Button_Plus, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
 
@@ -55,12 +58,45 @@ Calculator::Calculator(QWidget *parent)
     connect(ui->Button_Pow, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
 
     // set up sin button
-    // set up cos button
-    // set up tan button
-    // set up cot button
-    // set up ln button
-    // set up log button
+    connect(ui->Button_Sin, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
 
+    // set up cos button
+    connect(ui->Button_Cos, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up tan button
+    connect(ui->Button_Tan, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up cot button
+    connect(ui->Button_Cot, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up ln button
+    connect(ui->Button_NatLog, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up log button
+    connect(ui->Button_Log, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up ( button
+    connect(ui->Button_Paren_Open, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up ) button
+    connect(ui->Button_Paren_Close, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up { button
+    connect(ui->Button_Bracket_Open, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up } button
+    connect(ui->Button_Bracket_Close, SIGNAL(released()), this, SLOT(OperatorButtonPressed()));
+
+    // set up clear button
+    connect(ui->Button_Clear, SIGNAL(released()), this, SLOT(ClearButtonPressed()));
+
+    // set up backspace button
+    connect(ui->Button_Back, SIGNAL(released()), this, SLOT(BackButtonPressed()));
+
+    // set up unary operator button
+
+    // set up equal button
+    connect(ui->Button_Equal, SIGNAL(released()), this, SLOT(EqualButtonPressed()));
 }
 
 Calculator::~Calculator()
@@ -76,38 +112,41 @@ void Calculator::NumPressed()
     QString displayValue = ui->Display->text();
 
     // if the current display is 0, update to be the new number input
-    if((displayValue.toDouble() == 0) || (displayValue.toDouble() == 0.0))
+    if(input.size() == 0)
     {
         // set the dispaly to show the newly pressed value
         ui->Display->setText(buttonValue);
+        input.push_back(buttonValue);
     }
     else
     {
         // if the current display value is not 0, add the number pressed to the value
         QString newValue = displayValue + buttonValue;
-        double newValDbl = newValue.toDouble();
-        ui->Display->setText(QString::number(newValDbl, 'g', 20));
+        ui->Display->setText(newValue);
+
+        // check if the most recent input was an operation or a number character (this includes the "." character)
+        if(isOperator(input.at(input.size()-1)) == false)
+        {
+            input.at(input.size()-1).append(buttonValue);
+        }
+        else
+        {
+            input.push_back(buttonValue);
+        }
     }
 }
 
-// method to handle an operator button press +, -, *, /
+// method to handle an operator button press /, *, -, +, ^, sin, cos, tan, cot, log, ln, {, }, (, and )
 void Calculator::OperatorButtonPressed()
 {
-    // reset all trigger flags to false
-    bool addTrigger = false;
-    bool minTrigger = false;
-    bool multTrigger = false;
-    bool divTrigger = false;
-    bool powTrigger = false;
-
     // store current value in the display
     QString displayValue = ui->Display->text();
-    calcVal = displayValue.toDouble();
 
     // figure out what button was pushed
     QPushButton *button = (QPushButton *)sender();
     QString buttonValue = button->text();
 
+    /* // Saving this for later. Will need similar to evaluate expressions
     // if statements to prin the correct operator to the screen and set the trigger flag
     if(QString::compare(buttonValue, "+", Qt::CaseInsensitive) == 0)
     {
@@ -134,9 +173,22 @@ void Calculator::OperatorButtonPressed()
         // set the flag for that operation to true
         powTrigger = true;
     }
+    */
 
-    // clear the display ?? do I want to do this?
-    ui->Display->setText(displayValue + " " + buttonValue);
+    // if the current display is 0, update to be the new operator input
+    if(input.size() == 0)
+    {
+        // set the dispaly to show the newly pressed value
+        ui->Display->setText(buttonValue);
+        input.push_back(buttonValue);
+    }
+    else
+    {
+        // if the current display value is not 0, add the operator pressed to the value
+        QString newValue = displayValue + " " + buttonValue + " ";
+        ui->Display->setText(newValue);
+        input.push_back(buttonValue);
+    }
 }
 
 // method to handle the press of the equal button
@@ -149,15 +201,264 @@ void Calculator::EqualButtonPressed()
     // get the current display value from the display
     QString displayValue = ui->Display->text();
 
-    // convert string to double
-    double curDisplayValue = displayValue.toDouble();
+    // create QString to hold the output value
+    QString postFix;
+
+    // call the shuntingYard() method
+    shuntingYard();
+
+    for(int i = 0; i < output.size(); i++)
+    {
+        postFix += output.at(i);
+        postFix += " ";
+    }
+
+    // update the new Display value // for now prints the post fix
+    ui->Display->setText(postFix);
 
 }
 
+// method to handle the press of the clear button
+void Calculator::ClearButtonPressed()
+{
+    // reset the calcVal just in case it has been updated
+    calcVal = 0.0;
 
+    // clear the input
+    input.clear();
 
+    // set the display to show 0.0
+    ui->Display->setText(QString::number(calcVal));
+}
 
+// method to handle the press of the backspace button
+void Calculator::BackButtonPressed()
+{
+    // temporary string to hold the new value
+    QString updatedString;
 
+    // remove the most recent button added
+    if (input.size() > 1)
+    {
+        // remove the last element from the input
+        input.pop_back();
+
+        // recreate the string value
+        for(int i = 0; i < input.size(); i++)
+        {
+            updatedString += input.at(i);
+            updatedString += " ";
+        }
+
+        ui->Display->setText(updatedString);
+    }
+    else if(input.size() == 1)
+    {
+        // remove the last element from the input
+        input.pop_back();
+
+        // set the UI to the default (0)
+        ui->Display->setText(QString::number(0.0));
+    }
+}
+
+// implement shunting yard algorithm to create postfix expression in reverse polish notation
+void Calculator::shuntingYard()
+{
+    // iterate over input and perform shunting yard algorithm
+    for(int i = 0; i < input.size(); i++)
+    {
+        // create temporary string to hold the current data
+        QString tempData = input.at(i);
+
+        // check if the tempData is an operator
+        if(isOperator(tempData) == true)
+        {
+            // check for parenthetical correctness.
+            if(tempData == ")" || tempData == "}")
+            {
+                // flag for complete parentthetical expression
+                bool complete = false;
+
+                // iterate over the operator stack (represented as vector) to find the opening of the paren or curly bracket
+                while(operators.size() > 0)
+                {
+                    // get the top of operator stack
+                    QString opTop = operators.at(operators.size()-1);
+
+                    // remove the last element
+                    operators.pop_back();
+
+                    // check if the open paren or curly bracket is a trig function
+                    if((opTop == "Sin (" && tempData == ")") || (opTop == "Cos (" && tempData == ")") || (opTop == "Tan (" && tempData == ")") || (opTop == "Cot (" && tempData == ")")
+                            || (opTop == "ln (" && tempData == ")") || (opTop == "Log (" && tempData == ")"))
+                    {
+                        // if there is a complete trig/log function, add to the output queue
+                        output.push_back(opTop);
+
+                        // set the flag for complete to true
+                        complete = true;
+
+                        // exit the loop
+                        break;
+                    }
+                    else if(opTop == "(" || opTop == "{")
+                    {
+                        // if there is an open parenthasis, set the flag to true
+                        complete = true;
+
+                        // exit
+                        break;
+                    }
+
+                    // push the operator to the output queue
+                    output.push_back(opTop);
+                }
+
+                // if the complete paren/bracket flag was not set to true, clear the input and tell the user that it is an invalid input
+                if(complete == false)
+                {
+                    // clear the input
+                    input.clear();
+
+                    // clear the output
+                    output.clear();
+
+                    // clear the operator stack
+                    operators.clear();
+
+                    // set the UI to tell invalid input
+                    ui->Display->setText("Invalid Input");
+
+                    // break
+                    break;
+                }
+            }
+            // if any of the open parens or trig/log funcs or negation since they have highest precedence
+            else if(tempData == "(" || tempData == "{" || tempData == "Sin (" || tempData == "Cos (" || tempData == "Tan (" || tempData == "Cot (" || tempData == "ln (" || tempData == "Log ("
+                    || tempData == "Neg")
+            {
+                // push the operator into the operator stack
+                operators.push_back(tempData);
+            }
+            // the data is an operator, but not a paren, bracket, trig func, log func, or negation
+            else
+            {
+                // get the precedence of the current element
+                int curPrec = precedence(tempData);
+
+                if(operators.size() > 0)
+                {
+                    while(operators.size() > 0)
+                    {
+                        // get the top of the operators stack
+                        QString opTop = operators.at(0);
+
+                        // get the precedence of the top
+                        int topPrec = precedence(opTop);
+
+                        //
+                        if(curPrec > topPrec)
+                        {
+                            // push the top of the operator stack into the output queue
+                            output.push_back(opTop);
+                        }
+                        else if(curPrec == topPrec)
+                        {
+                            // push the top operator into the output queue
+                            output.push_back(opTop);
+
+                            // push the current operator into the stack
+                            operators.insert(operators.begin(), tempData);
+                        }
+                        // topPrec > curPrec
+                        else
+                        {
+                            // push both elements into the operator stack
+                            operators.insert(operators.begin(), opTop);
+                            operators.insert(operators.begin(), tempData);
+                        }
+                    }
+
+                    // if we reach the end of the operators stack while iterating, add tempData to the stack
+                    if(operators.size() == 0)
+                    {
+                        // push current operator into the stack
+                        operators.insert(operators.begin(), tempData);
+                    }
+                }
+                else
+                {
+                    // push the current operator into the empty stack
+                    operators.insert(operators.begin(), tempData);
+                }
+            }
+        }
+
+        // if the input is not an operator (this means the input is either a number or invalid)
+        if(isOperator(tempData) == false)
+        {
+            // push the number into the output queue
+            output.push_back(tempData);
+        }
+
+    } // end of for loop iteration over input
+
+    // push the remaining data from the stack and input
+    while(operators.size() > 0)
+    {
+        // push the top of the stack into the output queue
+        output.push_back(operators.at(0));
+
+        // pop the top of the stack
+        operators.erase(operators.begin());
+    }
+
+    // remove the data from the input
+    input.clear();
+}
+
+// method to determine if a given input is an operator or not. This is to make comparisons easier.
+bool Calculator::isOperator(QString data)
+{
+    // if statement to check if the input is one of the operators or if it is a number value
+    if(data == "+" || data == "-" || data == "*" || data == "/" || data == "^" || data == "Sin (" || data == "Cos (" || data == "Tan (" || data == "Cot (" || data == "ln (" || data == "Log ("
+            || data == "(" || data == ")" || data == "{" || data == "}" || data == "Neg")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// method to determine the precidence of a given input. Higher value means higher precidence
+int Calculator::precedence(QString data)
+{
+    // if statements to give the precidence of each operator
+    if(data == "+" || data == "-")
+    {
+        return 1;
+    }
+    else if(data == "*" || data == "/" || "Neg")
+    {
+        return 2;
+    }
+    else if(data == "^")
+    {
+        return 3;
+    }
+    else if(data == "Sin (" || data == "Cos (" || data == "Tan (" || data == "Cot (" || data == "ln (" || data == "Log ("
+            || data == "(" || data == "{")
+    {
+        return 4;
+    }
+    else
+    {
+        return -1;
+    }
+}
 
 
 

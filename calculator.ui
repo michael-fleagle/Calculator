@@ -139,7 +139,7 @@ QPushButton:pressed {
 }</string>
       </property>
       <property name="text">
-       <string>Cot</string>
+       <string>Cot (</string>
       </property>
      </widget>
     </item>
@@ -171,7 +171,7 @@ QPushButton:pressed {
 }</string>
       </property>
       <property name="text">
-       <string>Tan</string>
+       <string>Tan (</string>
       </property>
      </widget>
     </item>
@@ -235,7 +235,7 @@ QPushButton:pressed {
 }</string>
       </property>
       <property name="text">
-       <string>Log</string>
+       <string>Log (</string>
       </property>
      </widget>
     </item>
@@ -617,7 +617,7 @@ QPushButton:pressed {
 }</string>
       </property>
       <property name="text">
-       <string>Sin</string>
+       <string>Sin (</string>
       </property>
      </widget>
     </item>
@@ -809,7 +809,7 @@ QPushButton:pressed {
 }</string>
       </property>
       <property name="text">
-       <string>Cos</string>
+       <string>Cos (</string>
       </property>
      </widget>
     </item>
@@ -873,7 +873,7 @@ QPushButton:pressed {
 }</string>
       </property>
       <property name="text">
-       <string>ln</string>
+       <string>ln (</string>
       </property>
      </widget>
     </item>
