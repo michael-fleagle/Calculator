@@ -21,6 +21,7 @@ private:
     void shuntingYard();
     bool isOperator(QString data);
     int precedence(QString data);
+    void evaluation();
 
 private slots:
     // this will include the "." button, and nums 0-9

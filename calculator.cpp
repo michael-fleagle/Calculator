@@ -240,7 +240,25 @@ void Calculator::ClearButtonPressed()
 // method to handle the unary negation
 void Calculator::ChangeSignButtonPressed()
 {
+    // get the current display value
+    // store current value in the display
+    QString displayValue = ui->Display->text();
+
     // unary negation will be represented as "Neg" in the code, but shown as "-" in the window
+    // if the current display is 0, update to be the new operator input
+    if(input.size() == 0)
+    {
+        // set the dispaly to show the newly pressed value
+        ui->Display->setText("-");
+        input.push_back("Neg");
+    }
+    else
+    {
+        // if the current display value is not 0, add the operator pressed to the value
+        QString newValue = displayValue + " " + "-" + " ";
+        ui->Display->setText(newValue);
+        input.push_back("Neg");
+    }
 }
 
 // method to handle the press of the backspace button
@@ -314,7 +332,7 @@ void Calculator::shuntingYard()
                         // exit the loop
                         break;
                     }
-                    else if((opTop == "(" && tempData == ")") || (opTop == "{" && tempData == ")"))
+                    else if((opTop == "(" && tempData == ")") || (opTop == "{" && tempData == "}"))
                     {
                         // if there is an open parenthasis, set the flag to true
                         complete = true;
@@ -322,9 +340,11 @@ void Calculator::shuntingYard()
                         // exit
                         break;
                     }
-
-                    // push the operator to the output queue
-                    output.push_back(opTop);
+                    else
+                    {
+                        // push the operator to the output queue
+                        output.push_back(opTop);
+                    }
                 }
 
                 // if the complete paren/bracket flag was not set to true, clear the input and tell the user that it is an invalid input
@@ -340,7 +360,7 @@ void Calculator::shuntingYard()
                     operators.clear();
 
                     // set the UI to tell invalid input
-                    ui->Display->setText("Invalid Input");
+                    output.push_back("Invalid Input");
 
                     // break
                     break;
@@ -373,11 +393,36 @@ void Calculator::shuntingYard()
                         // get the precedence of the top
                         int topPrec = precedence(opTop);
 
-                        //
+                        // compare the precedence of the two operators and react accordingly
                         if(curPrec < topPrec)
                         {
                             // push the top of the operator stack into the output queue
-                            operators.push_back(opTop);
+                            output.push_back(opTop);
+
+                            // continue popping
+                            for(int i = 0; i < operators.size(); i++)
+                            {
+                                // get new top
+                                QString newTop = operators.at(i);
+
+                                operators.erase(operators.begin() + i);
+
+                                // get the precedence
+                                int newTopPrec = precedence(newTop);
+
+                                if(curPrec < newTopPrec)
+                                {
+                                    output.push_back(newTop);
+                                }
+                                else
+                                {
+                                    operators.insert(operators.begin(), 1, tempData);
+                                }
+                            }
+
+                            // push the current into the operator stack
+                            // operators.insert(operators.begin(), 1, tempData);
+
                             break;
                         }
                         else if(curPrec == topPrec)
@@ -455,20 +500,20 @@ int Calculator::precedence(QString data)
     // if statements to give the precidence of each operator
     if(data == "+" || data == "-")
     {
-        return 1;
+        return 2;
     }
     else if(data == "*" || data == "/")
     {
-        return 2;
-    }
-    else if(data == "^")
-    {
         return 3;
     }
-    else if(data == "Sin (" || data == "Cos (" || data == "Tan (" || data == "Cot (" || data == "ln (" || data == "Log ("
-            || data == "(" || data == "{" || "Neg")
+    else if(data == "^" || data == "Neg")
     {
         return 4;
+    }
+    else if(data == "Sin (" || data == "Cos (" || data == "Tan (" || data == "Cot (" || data == "ln (" || data == "Log ("
+            || data == "(" || data == "{" )
+    {
+        return 1;
     }
     else
     {
@@ -476,6 +521,26 @@ int Calculator::precedence(QString data)
     }
 }
 
+// method to handle the evaluation of the postfix function output by shuntingYard()
+void Calculator::evaluation()
+{
+    // check if any of the elements contain an open parenthases
+    for(int i = 0; i < output.size(); i++)
+    {
+        if(output.at(i) == "(" || output.at(i) == "{")
+        {
+            // clear the output
+            output.clear();
+
+            // tell the user that this expression is invalid
+            output.push_back("Invalid Input");
+
+            break;
+        }
+    }
+
+
+}
 
 
 
