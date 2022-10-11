@@ -94,6 +94,7 @@ Calculator::Calculator(QWidget *parent)
     connect(ui->Button_Back, SIGNAL(released()), this, SLOT(BackButtonPressed()));
 
     // set up unary operator button
+    connect(ui->Button_Neg, SIGNAL(released()), this, SLOT(ChangeSignButtonPressed()));
 
     // set up equal button
     connect(ui->Button_Equal, SIGNAL(released()), this, SLOT(EqualButtonPressed()));
@@ -213,6 +214,11 @@ void Calculator::EqualButtonPressed()
         postFix += " ";
     }
 
+    // clear all the data
+    output.clear();
+    input.clear();
+    operators.clear();
+
     // update the new Display value // for now prints the post fix
     ui->Display->setText(postFix);
 
@@ -229,6 +235,12 @@ void Calculator::ClearButtonPressed()
 
     // set the display to show 0.0
     ui->Display->setText(QString::number(calcVal));
+}
+
+// method to handle the unary negation
+void Calculator::ChangeSignButtonPressed()
+{
+    // unary negation will be represented as "Neg" in the code, but shown as "-" in the window
 }
 
 // method to handle the press of the backspace button
@@ -284,10 +296,10 @@ void Calculator::shuntingYard()
                 while(operators.size() > 0)
                 {
                     // get the top of operator stack
-                    QString opTop = operators.at(operators.size()-1);
+                    QString opTop = operators.at(0);
 
-                    // remove the last element
-                    operators.pop_back();
+                    // pop the first element
+                    operators.erase(operators.begin());
 
                     // check if the open paren or curly bracket is a trig function
                     if((opTop == "Sin (" && tempData == ")") || (opTop == "Cos (" && tempData == ")") || (opTop == "Tan (" && tempData == ")") || (opTop == "Cot (" && tempData == ")")
@@ -302,7 +314,7 @@ void Calculator::shuntingYard()
                         // exit the loop
                         break;
                     }
-                    else if(opTop == "(" || opTop == "{")
+                    else if((opTop == "(" && tempData == ")") || (opTop == "{" && tempData == ")"))
                     {
                         // if there is an open parenthasis, set the flag to true
                         complete = true;
@@ -333,13 +345,14 @@ void Calculator::shuntingYard()
                     // break
                     break;
                 }
+                continue;
             }
             // if any of the open parens or trig/log funcs or negation since they have highest precedence
             else if(tempData == "(" || tempData == "{" || tempData == "Sin (" || tempData == "Cos (" || tempData == "Tan (" || tempData == "Cot (" || tempData == "ln (" || tempData == "Log ("
                     || tempData == "Neg")
             {
                 // push the operator into the operator stack
-                operators.push_back(tempData);
+                operators.insert(operators.begin(), 1, tempData);
             }
             // the data is an operator, but not a paren, bracket, trig func, log func, or negation
             else
@@ -354,14 +367,18 @@ void Calculator::shuntingYard()
                         // get the top of the operators stack
                         QString opTop = operators.at(0);
 
+                        // pop the top operator
+                        operators.erase(operators.begin());
+
                         // get the precedence of the top
                         int topPrec = precedence(opTop);
 
                         //
-                        if(curPrec > topPrec)
+                        if(curPrec < topPrec)
                         {
                             // push the top of the operator stack into the output queue
-                            output.push_back(opTop);
+                            operators.push_back(opTop);
+                            break;
                         }
                         else if(curPrec == topPrec)
                         {
@@ -369,14 +386,16 @@ void Calculator::shuntingYard()
                             output.push_back(opTop);
 
                             // push the current operator into the stack
-                            operators.insert(operators.begin(), tempData);
+                            operators.insert(operators.begin(), 1, tempData);
+                            break;
                         }
-                        // topPrec > curPrec
+                        // topPrec < curPrec
                         else
                         {
                             // push both elements into the operator stack
-                            operators.insert(operators.begin(), opTop);
-                            operators.insert(operators.begin(), tempData);
+                            operators.insert(operators.begin(), 1, opTop);
+                            operators.insert(operators.begin(), 1, tempData);
+                            break;
                         }
                     }
 
@@ -384,13 +403,13 @@ void Calculator::shuntingYard()
                     if(operators.size() == 0)
                     {
                         // push current operator into the stack
-                        operators.insert(operators.begin(), tempData);
+                        operators.insert(operators.begin(), 1, tempData);
                     }
                 }
                 else
                 {
                     // push the current operator into the empty stack
-                    operators.insert(operators.begin(), tempData);
+                    operators.insert(operators.begin(), 1, tempData);
                 }
             }
         }
@@ -413,9 +432,6 @@ void Calculator::shuntingYard()
         // pop the top of the stack
         operators.erase(operators.begin());
     }
-
-    // remove the data from the input
-    input.clear();
 }
 
 // method to determine if a given input is an operator or not. This is to make comparisons easier.
@@ -441,7 +457,7 @@ int Calculator::precedence(QString data)
     {
         return 1;
     }
-    else if(data == "*" || data == "/" || "Neg")
+    else if(data == "*" || data == "/")
     {
         return 2;
     }
@@ -450,7 +466,7 @@ int Calculator::precedence(QString data)
         return 3;
     }
     else if(data == "Sin (" || data == "Cos (" || data == "Tan (" || data == "Cot (" || data == "ln (" || data == "Log ("
-            || data == "(" || data == "{")
+            || data == "(" || data == "{" || "Neg")
     {
         return 4;
     }

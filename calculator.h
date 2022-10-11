@@ -30,7 +30,7 @@ private slots:
     // this will include the =
     void EqualButtonPressed();
     // this will include the +/-
-    //void ChangeSignButtonPressed();
+    void ChangeSignButtonPressed();
     // this will include the Clear
     void ClearButtonPressed();
     // this will include the backspace
