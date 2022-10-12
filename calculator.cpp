@@ -99,6 +99,27 @@ Calculator::Calculator(QWidget *parent)
 
     // set up equal button
     connect(ui->Button_Equal, SIGNAL(released()), this, SLOT(EqualButtonPressed()));
+
+    // set buttons to their default values
+    // disable operand buttons
+    ui->Button_Plus->setDisabled(true);
+    ui->Button_Min->setDisabled(true);
+    ui->Button_Mult->setDisabled(true);
+    ui->Button_Div->setDisabled(true);
+    ui->Button_Pow->setDisabled(true);
+    // enable trig buttons
+    ui->Button_Sin->setDisabled(false);
+    ui->Button_Cos->setDisabled(false);
+    ui->Button_Tan->setDisabled(false);
+    ui->Button_Cot->setDisabled(false);
+    ui->Button_Log->setDisabled(false);
+    ui->Button_NatLog->setDisabled(false);
+    ui->Button_Paren_Open->setDisabled(false);
+    ui->Button_Bracket_Open->setDisabled(false);
+    ui->Button_Paren_Close->setDisabled(true);
+    ui->Button_Bracket_Close->setDisabled(true);
+    // enable negation button
+    ui->Button_Neg->setDisabled(false);
 }
 
 Calculator::~Calculator()
@@ -137,6 +158,33 @@ void Calculator::NumPressed()
             input.push_back(buttonValue);
         }
     }
+
+    // enable operand buttons
+    ui->Button_Plus->setDisabled(false);
+    ui->Button_Min->setDisabled(false);
+    ui->Button_Mult->setDisabled(false);
+    ui->Button_Div->setDisabled(false);
+    ui->Button_Pow->setDisabled(false);
+    // enable closing brackets/paren
+    ui->Button_Bracket_Close->setDisabled(false);
+    ui->Button_Paren_Close->setDisabled(false);
+
+    // disable trig functions
+    ui->Button_Sin->setDisabled(true);
+    ui->Button_Cos->setDisabled(true);
+    ui->Button_Tan->setDisabled(true);
+    ui->Button_Cot->setDisabled(true);
+    ui->Button_Log->setDisabled(true);
+    ui->Button_NatLog->setDisabled(true);
+    ui->Button_Paren_Open->setDisabled(true);
+    ui->Button_Bracket_Open->setDisabled(true);
+
+
+    // disable negation
+    ui->Button_Neg->setDisabled(true);
+
+    // enable the equals button
+    ui->Button_Equal->setDisabled(false);
 }
 
 
@@ -149,35 +197,6 @@ void Calculator::OperatorButtonPressed()
     // figure out what button was pushed
     QPushButton *button = (QPushButton *)sender();
     QString buttonValue = button->text();
-
-    /* // Saving this for later. Will need similar to evaluate expressions
-    // if statements to prin the correct operator to the screen and set the trigger flag
-    if(QString::compare(buttonValue, "+", Qt::CaseInsensitive) == 0)
-    {
-        // set the flag for that operation to true
-        addTrigger = true;
-    }
-    else if(QString::compare(buttonValue, "-", Qt::CaseInsensitive) == 0)
-    {
-        // set the flag for that operation to true
-        minTrigger = true;
-    }
-    else if(QString::compare(buttonValue, "*", Qt::CaseInsensitive) == 0)
-    {
-        // set the flag for that operation to true
-        multTrigger = true;
-    }
-    else if(QString::compare(buttonValue, "/", Qt::CaseInsensitive) == 0)
-    {
-        // set the flag for that operation to true
-        divTrigger = true;
-    }
-    else if(QString::compare(buttonValue, "^", Qt::CaseInsensitive) == 0)
-    {
-        // set the flag for that operation to true
-        powTrigger = true;
-    }
-    */
 
     // if the current display is 0, update to be the new operator input
     if(input.size() == 0)
@@ -192,6 +211,46 @@ void Calculator::OperatorButtonPressed()
         QString newValue = displayValue + " " + buttonValue + " ";
         ui->Display->setText(newValue);
         input.push_back(buttonValue);
+    }
+
+    // disable operand buttons
+    ui->Button_Plus->setDisabled(true);
+    ui->Button_Min->setDisabled(true);
+    ui->Button_Mult->setDisabled(true);
+    ui->Button_Div->setDisabled(true);
+    ui->Button_Pow->setDisabled(true);
+    ui->Button_Bracket_Close->setDisabled(true);
+    ui->Button_Paren_Close->setDisabled(true);
+
+    // enable trig unless ), ^, or }
+    // disable trig functions
+    if(buttonValue != ")" && buttonValue != "}" && buttonValue != "^")
+    {
+        ui->Button_Sin->setDisabled(false);
+        ui->Button_Cos->setDisabled(false);
+        ui->Button_Tan->setDisabled(false);
+        ui->Button_Cot->setDisabled(false);
+        ui->Button_Log->setDisabled(false);
+        ui->Button_NatLog->setDisabled(false);
+        ui->Button_Paren_Open->setDisabled(false);
+        ui->Button_Bracket_Open->setDisabled(false);
+    }
+    // enable operators after closing parenthases/bracket
+    if(buttonValue == ")" || buttonValue == "}")
+    {
+        ui->Button_Plus->setDisabled(false);
+        ui->Button_Min->setDisabled(false);
+        ui->Button_Mult->setDisabled(false);
+        ui->Button_Div->setDisabled(false);
+        ui->Button_Pow->setDisabled(false);
+        ui->Button_Bracket_Close->setDisabled(false);
+        ui->Button_Paren_Close->setDisabled(false);
+    }
+
+    // disable the equals button if not evaluatable
+    if(buttonValue != ")" && buttonValue != "}")
+    {
+        ui->Button_Equal->setDisabled(true);
     }
 }
 
@@ -232,13 +291,41 @@ void Calculator::EqualButtonPressed()
     */
 
     // check if the calcval is correct, or if need to read from output
-    // update the new Display value // for now prints the post fix
-    ui->Display->setText(QString::number(calcVal));
+    if(output.size() > 0 && output.at(0) == "Invalid Input")
+    {
+        ui->Display->setText(output.at(0));
+    }
+    else
+    {
+        // update the new Display value // for now prints the post fix
+        ui->Display->setText(QString::number(calcVal));
+    }
 
     // clear all the data
     output.clear();
     input.clear();
     operators.clear();
+
+    // enable all buttons
+    // disable operand buttons
+    ui->Button_Plus->setDisabled(true);
+    ui->Button_Min->setDisabled(true);
+    ui->Button_Mult->setDisabled(true);
+    ui->Button_Div->setDisabled(true);
+    ui->Button_Pow->setDisabled(true);
+    // enable trig buttons
+    ui->Button_Sin->setDisabled(false);
+    ui->Button_Cos->setDisabled(false);
+    ui->Button_Tan->setDisabled(false);
+    ui->Button_Cot->setDisabled(false);
+    ui->Button_Log->setDisabled(false);
+    ui->Button_NatLog->setDisabled(false);
+    ui->Button_Paren_Open->setDisabled(false);
+    ui->Button_Bracket_Open->setDisabled(false);
+    ui->Button_Paren_Close->setDisabled(true);
+    ui->Button_Bracket_Close->setDisabled(true);
+    // enable negation button
+    ui->Button_Neg->setDisabled(false);
 
 }
 
@@ -254,6 +341,29 @@ void Calculator::ClearButtonPressed()
 
     // set the display to show 0.0
     ui->Display->setText(QString::number(calcVal));
+
+    // reset all buttons
+    // disable operand buttons
+    ui->Button_Plus->setDisabled(true);
+    ui->Button_Min->setDisabled(true);
+    ui->Button_Mult->setDisabled(true);
+    ui->Button_Div->setDisabled(true);
+    ui->Button_Pow->setDisabled(true);
+    // enable trig buttons
+    ui->Button_Sin->setDisabled(false);
+    ui->Button_Cos->setDisabled(false);
+    ui->Button_Tan->setDisabled(false);
+    ui->Button_Cot->setDisabled(false);
+    ui->Button_Log->setDisabled(false);
+    ui->Button_NatLog->setDisabled(false);
+    ui->Button_Paren_Open->setDisabled(false);
+    ui->Button_Bracket_Open->setDisabled(false);
+    ui->Button_Paren_Close->setDisabled(true);
+    ui->Button_Bracket_Close->setDisabled(true);
+    // enable negation button
+    ui->Button_Neg->setDisabled(false);
+    // enable equals button
+    ui->Button_Equal->setDisabled(false);
 }
 
 
@@ -279,6 +389,17 @@ void Calculator::ChangeSignButtonPressed()
         ui->Display->setText(newValue);
         input.push_back("Neg");
     }
+
+    // disable operand buttons
+    ui->Button_Plus->setDisabled(true);
+    ui->Button_Min->setDisabled(true);
+    ui->Button_Mult->setDisabled(true);
+    ui->Button_Div->setDisabled(true);
+    ui->Button_Pow->setDisabled(true);
+    ui->Button_Bracket_Close->setDisabled(true);
+    ui->Button_Paren_Close->setDisabled(true);
+    // disable the equals button
+    ui->Button_Equal->setDisabled(true);
 }
 
 
@@ -294,11 +415,93 @@ void Calculator::BackButtonPressed()
         // remove the last element from the input
         input.pop_back();
 
+        // get the last value to enable proper restting of buttons
+        QString lastVal = input.at(input.size() - 1);
+
+        if(isOperator(lastVal) == true)
+        {
+            // disable operand buttons
+            ui->Button_Plus->setDisabled(true);
+            ui->Button_Min->setDisabled(true);
+            ui->Button_Mult->setDisabled(true);
+            ui->Button_Div->setDisabled(true);
+            ui->Button_Pow->setDisabled(true);
+            ui->Button_Bracket_Close->setDisabled(true);
+            ui->Button_Paren_Close->setDisabled(true);
+
+            // enable trig unless ), ^, or }
+            // disable trig functions
+            if(lastVal != ")" && lastVal != "}" && lastVal != "^")
+            {
+                ui->Button_Sin->setDisabled(false);
+                ui->Button_Cos->setDisabled(false);
+                ui->Button_Tan->setDisabled(false);
+                ui->Button_Cot->setDisabled(false);
+                ui->Button_Log->setDisabled(false);
+                ui->Button_NatLog->setDisabled(false);
+                ui->Button_Paren_Open->setDisabled(false);
+                ui->Button_Bracket_Open->setDisabled(false);
+            }
+            // enable operators after closing parenthases/bracket
+            if(lastVal == ")" || lastVal == "}")
+            {
+                ui->Button_Plus->setDisabled(false);
+                ui->Button_Min->setDisabled(false);
+                ui->Button_Mult->setDisabled(false);
+                ui->Button_Div->setDisabled(false);
+                ui->Button_Pow->setDisabled(false);
+            }
+
+            // disable the equals button if not evaluatable
+            if(lastVal != ")" && lastVal != "}")
+            {
+                ui->Button_Equal->setDisabled(true);
+            }
+        }
+        // last val is a number
+        else
+        {
+            // enable operand buttons
+            ui->Button_Plus->setDisabled(false);
+            ui->Button_Min->setDisabled(false);
+            ui->Button_Mult->setDisabled(false);
+            ui->Button_Div->setDisabled(false);
+            ui->Button_Pow->setDisabled(false);
+            // enable closing brackets/paren
+            ui->Button_Bracket_Close->setDisabled(false);
+            ui->Button_Paren_Close->setDisabled(false);
+
+            // disable trig functions
+            ui->Button_Sin->setDisabled(true);
+            ui->Button_Cos->setDisabled(true);
+            ui->Button_Tan->setDisabled(true);
+            ui->Button_Cot->setDisabled(true);
+            ui->Button_Log->setDisabled(true);
+            ui->Button_NatLog->setDisabled(true);
+            ui->Button_Paren_Open->setDisabled(true);
+            ui->Button_Bracket_Open->setDisabled(true);
+
+
+            // disable negation
+            ui->Button_Neg->setDisabled(true);
+
+            // enable the equals button
+            ui->Button_Equal->setDisabled(false);
+
+        }
+
         // recreate the string value
         for(int i = 0; i < input.size(); i++)
         {
-            updatedString += input.at(i);
-            updatedString += " ";
+            if(input.at(i) != "Neg")
+            {
+                updatedString += input.at(i);
+                updatedString += " ";
+            }
+            else
+            {
+                updatedString += "-";
+            }
         }
 
         ui->Display->setText(updatedString);
@@ -310,7 +513,30 @@ void Calculator::BackButtonPressed()
 
         // set the UI to the default (0)
         ui->Display->setText(QString::number(0.0));
+
+        // reset all buttons to default
+        // enable all buttons
+        // enable operand buttons
+        ui->Button_Plus->setDisabled(false);
+        ui->Button_Min->setDisabled(false);
+        ui->Button_Mult->setDisabled(false);
+        ui->Button_Div->setDisabled(false);
+        ui->Button_Pow->setDisabled(false);
+        // enable trig buttons
+        ui->Button_Sin->setDisabled(false);
+        ui->Button_Cos->setDisabled(false);
+        ui->Button_Tan->setDisabled(false);
+        ui->Button_Cot->setDisabled(false);
+        ui->Button_Log->setDisabled(false);
+        ui->Button_NatLog->setDisabled(false);
+        ui->Button_Paren_Open->setDisabled(false);
+        ui->Button_Bracket_Open->setDisabled(false);
+
+        // enable negation button
+        ui->Button_Neg->setDisabled(false);
     }
+
+    // build button enable/disable for backspace. Check if the last input is a number or an operand
 }
 
 
@@ -604,6 +830,9 @@ void Calculator::evaluation()
 
     // set the top of the stack to the calcval
     calcVal = evalStack.at(0).toDouble();
+
+    // clear the eval stack
+    evalStack.clear();
 
 }
 
