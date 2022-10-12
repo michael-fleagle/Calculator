@@ -7,6 +7,7 @@
 // add Qt math to handle match functions and vectors to use in place of arrays
 #include <QtMath>
 #include <vector>
+#include <cmath>
 
 // namesapce std for ease of use
 using namespace std;
@@ -105,6 +106,7 @@ Calculator::~Calculator()
     delete ui;
 }
 
+
 // method to handle a number button press
 void Calculator::NumPressed()
 {
@@ -136,6 +138,7 @@ void Calculator::NumPressed()
         }
     }
 }
+
 
 // method to handle an operator button press /, *, -, +, ^, sin, cos, tan, cot, log, ln, {, }, (, and )
 void Calculator::OperatorButtonPressed()
@@ -192,6 +195,7 @@ void Calculator::OperatorButtonPressed()
     }
 }
 
+
 // method to handle the press of the equal button
 // method will call shunting yard algorithm for current input
 void Calculator::EqualButtonPressed()
@@ -205,24 +209,39 @@ void Calculator::EqualButtonPressed()
     // create QString to hold the output value
     QString postFix;
 
-    // call the shuntingYard() method
-    shuntingYard();
+    // check if th einput is greater than 0
+    if(input.size() > 0)
+    {
+        // call the shuntingYard() method
+        shuntingYard();
+    }
 
+    // check if the output is greater than 0
+    if(output.size() > 0)
+    {
+        // call the evaluation method
+        evaluation();
+    }
+
+    /*
     for(int i = 0; i < output.size(); i++)
     {
         postFix += output.at(i);
         postFix += " ";
     }
+    */
+
+    // check if the calcval is correct, or if need to read from output
+    // update the new Display value // for now prints the post fix
+    ui->Display->setText(QString::number(calcVal));
 
     // clear all the data
     output.clear();
     input.clear();
     operators.clear();
 
-    // update the new Display value // for now prints the post fix
-    ui->Display->setText(postFix);
-
 }
+
 
 // method to handle the press of the clear button
 void Calculator::ClearButtonPressed()
@@ -236,6 +255,7 @@ void Calculator::ClearButtonPressed()
     // set the display to show 0.0
     ui->Display->setText(QString::number(calcVal));
 }
+
 
 // method to handle the unary negation
 void Calculator::ChangeSignButtonPressed()
@@ -260,6 +280,7 @@ void Calculator::ChangeSignButtonPressed()
         input.push_back("Neg");
     }
 }
+
 
 // method to handle the press of the backspace button
 void Calculator::BackButtonPressed()
@@ -291,6 +312,7 @@ void Calculator::BackButtonPressed()
         ui->Display->setText(QString::number(0.0));
     }
 }
+
 
 // implement shunting yard algorithm to create postfix expression in reverse polish notation
 void Calculator::shuntingYard()
@@ -479,6 +501,7 @@ void Calculator::shuntingYard()
     }
 }
 
+
 // method to determine if a given input is an operator or not. This is to make comparisons easier.
 bool Calculator::isOperator(QString data)
 {
@@ -493,6 +516,7 @@ bool Calculator::isOperator(QString data)
         return false;
     }
 }
+
 
 // method to determine the precidence of a given input. Higher value means higher precidence
 int Calculator::precedence(QString data)
@@ -521,9 +545,13 @@ int Calculator::precedence(QString data)
     }
 }
 
+
 // method to handle the evaluation of the postfix function output by shuntingYard()
 void Calculator::evaluation()
 {
+    // create eval stack
+    vector<QString> evalStack;
+
     // check if any of the elements contain an open parenthases
     for(int i = 0; i < output.size(); i++)
     {
@@ -539,18 +567,126 @@ void Calculator::evaluation()
         }
     }
 
+    for(int i = 0; i < output.size(); i++)
+    {
+        if(isOperator(output.at(i)) == true)
+        {
+            // call operations method (handles binary operators +, -, *, /, ^)
+            if(output.at(i) == "+" || output.at(i) == "-" || output.at(i) == "*" || output.at(i) == "/" || output.at(i) == "^")
+            {
+                // pop the top two elements
+                double a = evalStack.at(0).toDouble();
+                evalStack.erase(evalStack.begin());
+                double b = evalStack.at(0).toDouble();
+                evalStack.erase(evalStack.begin());
+
+                // call the operations method
+                evalStack.insert(evalStack.begin(), 1, QString::number(binaryOperations(output.at(i), a, b)));
+            }
+            // call function method (handles sin, cos, cot, tan, log, ln)
+            else
+            {
+                // pop the top element
+                double a = evalStack.at(0).toDouble();
+                evalStack.erase(evalStack.begin());
+
+                // call the function method
+                evalStack.insert(evalStack.begin(), 1, QString::number(funcOperations(output.at(i), a)));
+            }
+
+        }
+        else
+        {
+            evalStack.insert(evalStack.begin(), 1, output.at(i));
+        }
+
+    }
+
+    // set the top of the stack to the calcval
+    calcVal = evalStack.at(0).toDouble();
 
 }
 
 
+// operations method to handle binary operator calculations
+double Calculator::binaryOperations(QString op, double a, double b)
+{
+    if(op == "+")
+    {
+        // b+a
+        return b+a;
+    }
+    else if(op == "-")
+    {
+        // b-a
+        return b-a;
+    }
+    else if(op == "*")
+    {
+        // b*a
+        return b*a;
+    }
+    else if(op == "/")
+    {
+        // b/a
+        return b/a;
+    }
+    else if(op == "^")
+    {
+        // b^a
+        return qPow(b, a);
+    }
+    else
+    {
+        return INT_MIN;
+    }
+}
 
 
-
-
-
-
-
-
+// functions method to handle trig and log functions
+double Calculator::funcOperations(QString op, double a)
+{
+    if(op == "Sin (")
+    {
+        // QtMath sin func
+        return qSin(a);
+    }
+    else if(op == "Cos (")
+    {
+        // QtMath cos func
+        return qCos(a);
+    }
+    else if(op == "Tan (")
+    {
+        // QtMath tan func
+        return qTan(a);
+    }
+    else if(op == "Cot (")
+    {
+        // QtMath cot func/ arctan
+        return qAtan(a);
+    }
+    else if(op == "Log (")
+    {
+        // QtMath does not contain log base 10 function
+        // use general cmath log10() function
+        return log10(a);
+    }
+    else if(op == "ln (")
+    {
+        // QtMath ln function
+        return qLn(a);
+    }
+    else if(op == "Neg")
+    {
+        // return a * -1
+        return a * -1;
+    }
+    else
+    {
+        return INT_MIN;
+    }
+}
 
 
 

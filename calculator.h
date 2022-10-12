@@ -22,6 +22,8 @@ private:
     bool isOperator(QString data);
     int precedence(QString data);
     void evaluation();
+    double binaryOperations(QString op, double a, double b);
+    double funcOperations(QString op, double a);
 
 private slots:
     // this will include the "." button, and nums 0-9
